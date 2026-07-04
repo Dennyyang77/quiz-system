@@ -1,0 +1,101 @@
+{
+  "quiz_title": "七年級數學第二次段考",
+  "subject": "數學",
+  "grade": "七下",
+  "description": "第二次段考範圍：整數運算與分數",
+  "time_limit": 40,
+  "questions": [
+    {
+      "type": "multiple_choice",
+      "question": "計算 $(-5) + (-8) \\times 2$ 的結果為何？",
+      "latex": "(-5) + (-8) \\times 2",
+      "spoken": "前小括號 負 5 後小括號 加 前小括號 負 8 後小括號 乘以 2",
+      "correct_answer": "B",
+      "difficulty": "easy",
+      "options": [
+        {
+          "id": "A",
+          "text": "$-26$",
+          "latex": "-26",
+          "spoken": "負 26"
+        },
+        {
+          "id": "B",
+          "text": "$-21$",
+          "latex": "-21",
+          "spoken": "負 21"
+        },
+        {
+          "id": "C",
+          "text": "$-11$",
+          "latex": "-11",
+          "spoken": "負 11"
+        },
+        {
+          "id": "D",
+          "text": "$11$",
+          "latex": "11",
+          "spoken": "11"
+        }
+      ]
+    },
+    {
+      "type": "multiple_choice",
+      "question": "下列哪個數值等於 $\\frac{3}{4} \\div \\frac{1}{2}$？",
+      "latex": "\\frac{3}{4} \\div \\frac{1}{2}",
+      "spoken": "4 分之 3 除以 2 分之 1",
+      "correct_answer": "C",
+      "difficulty": "medium",
+      "options": [
+        {
+          "id": "A",
+          "text": "$\\frac{3}{8}$",
+          "latex": "\\frac{3}{8}",
+          "spoken": "8 分之 3"
+        },
+        {
+          "id": "B",
+          "text": "$\\frac{2}{3}$",
+          "latex": "\\frac{2}{3}",
+          "spoken": "3 分之 2"
+        },
+        {
+          "id": "C",
+          "text": "$\\frac{3}{2}$",
+          "latex": "\\frac{3}{2}",
+          "spoken": "2 分之 3"
+        },
+        {
+          "id": "D",
+          "text": "$\\frac{4}{3}$",
+          "latex": "\\frac{4}{3}",
+          "spoken": "3 分之 4"
+        }
+      ]
+    },
+    {
+      "type": "fill_in_blank",
+      "question": "計算 $12 - (-5) + (-3)$ 的結果是多少？",
+      "latex": "12 - (-5) + (-3)",
+      "spoken": "12 減 前小括號 負 5 後小括號 加 前小括號 負 3 後小括號",
+      "correct_answer": "14",
+      "difficulty": "easy"
+    },
+    {
+      "type": "math_expression",
+      "question": "請寫出 $\\frac{1}{2} + \\frac{1}{3}$ 的簡化分數結果。",
+      "latex": "\\frac{1}{2} + \\frac{1}{3}",
+      "spoken": "2 分之 1 加 3 分之 1",
+      "correct_answer": "5/6",
+      "difficulty": "medium"
+    },
+    {
+      "type": "true_false",
+      "question": "對於任何整數 $a$，$a \\times 0 = 0$ 永遠成立。",
+      "latex": "a \\times 0 = 0",
+      "spoken": "a 乘以 0 等於 0",
+      "correct_answer": "true",
+      "difficulty": "easy"
+    }
+  ]
+}
