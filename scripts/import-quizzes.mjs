@@ -30,20 +30,29 @@ const QUESTION_TYPES = ['fill_in_blank', 'multiple_choice', 'math_expression', '
  */
 function getSupabaseConfig() {
   const url = process.env.SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const anonKey = process.env.SUPABASE_ANON_KEY;
   
-  if (!url || !anonKey) {
-    throw new Error('Missing required environment variables: SUPABASE_URL and SUPABASE_ANON_KEY must be set');
+  if (!url) {
+    throw new Error('Missing required environment variable: SUPABASE_URL must be set');
   }
   
-  return { url, anonKey };
+  const apiKey = serviceRoleKey || anonKey;
+  if (!apiKey) {
+    throw new Error('Missing required environment variable: SUPABASE_SERVICE_ROLE_KEY or SUPABASE_ANON_KEY must be set');
+  }
+  
+  const keyType = serviceRoleKey ? 'service_role (RLS bypassed)' : 'anon (RLS active)';
+  console.log(`Supabase auth: ${keyType}`);
+  
+  return { url, apiKey };
 }
 
 /**
  * Make a request to Supabase REST API
  */
-async function supabaseRequest(config, method, table, body = null, params = {}) {
-  const { url, anonKey } = config;
+async function supabaseRequest(config, method, table, body = null, params = {}, options = {}) {
+  const { url, apiKey } = config;
   
   let endpoint = `${url}/rest/v1/${table}`;
   
@@ -58,25 +67,26 @@ async function supabaseRequest(config, method, table, body = null, params = {}) 
   }
   
   const headers = {
-    'apikey': anonKey,
-    'Authorization': `Bearer ${anonKey}`,
+    'apikey': apiKey,
+    'Authorization': `Bearer ${apiKey}`,
     'Content-Type': 'application/json',
   };
   
-  if (body) {
-    headers['Prefer'] = 'return=representation';
+  // Build Prefer header from options.prefer array
+  if (options.prefer && options.prefer.length > 0) {
+    headers['Prefer'] = options.prefer.join(', ');
   }
   
-  const options = {
+  const fetchOptions = {
     method,
     headers,
   };
   
   if (body) {
-    options.body = JSON.stringify(body);
+    fetchOptions.body = JSON.stringify(body);
   }
   
-  const response = await fetch(endpoint, options);
+  const response = await fetch(endpoint, fetchOptions);
   
   // Supabase returns 201 for insert, 200 for update/delete
   if (!response.ok && response.status !== 201) {
@@ -101,11 +111,11 @@ async function upsert(config, table, body, conflictColumn = 'id') {
     'on_conflict': conflictColumn,
   };
   
-  if (table === 'users') {
-    params['resolution'] = 'merge-duplicates';
-  }
+  const options = {
+    prefer: ['return=representation', 'resolution=merge-duplicates'],
+  };
   
-  return supabaseRequest(config, 'POST', table, body, params);
+  return supabaseRequest(config, 'POST', table, body, params, options);
 }
 
 /**
