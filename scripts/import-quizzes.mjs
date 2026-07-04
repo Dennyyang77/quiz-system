@@ -311,7 +311,7 @@ async function insertQuiz(config, quizData) {
     ? `[github] ${quizData.description}`
     : '[github]';
   
-  const result = await insert(config, 'quizzes', {
+  const result = await supabaseRequest(config, 'POST', 'quizzes', {
     title: quizData.quiz_title,
     description,
     subject: quizData.subject || null,
@@ -319,9 +319,25 @@ async function insertQuiz(config, quizData) {
     time_limit: quizData.time_limit || null,
     status: 'published',
     created_by: DEMO_TEACHER_ID,
+  }, {
+    'on_conflict': 'title',
+  }, {
+    prefer: ['return=representation'],
   });
   
-  return result[0]?.id;
+  // result is an array from PostgREST
+  if (Array.isArray(result) && result.length > 0) {
+    return result[0].id;
+  }
+  
+  // Fallback: if no id returned, query by title
+  const found = await select(config, 'quizzes', {
+    'title': `eq.${quizData.quiz_title}`,
+    'select': 'id',
+    'limit': 1,
+  });
+  
+  return found?.[0]?.id;
 }
 
 /**
