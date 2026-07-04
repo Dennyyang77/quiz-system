@@ -7,53 +7,9 @@ import { TextPasteImporter } from '../components/quiz/TextPasteImporter';
 import { PdfUploader } from '../components/quiz/PdfUploader';
 import type { EditorQuestion } from '../components/quiz/QuestionEditor';
 import type { GeneratedQuiz } from '../lib/gemini';
-import { saveQuiz, getAllQuizzes, deleteQuiz as deleteQuizFromDb } from '../lib/quizService';
+import { saveQuiz, getAllQuizzes, deleteQuiz as deleteQuizFromDb, getQuizStats, type QuizStats } from '../lib/quizService';
 
 type ImportTab = 'manual' | 'json' | 'text' | 'pdf';
-
-interface QuizStat {
-  id: string;
-  title: string;
-  totalAttempts: number;
-  averageScore: number;
-  passRate: number;
-  lastAttempt: string;
-}
-
-const MOCK_STATS: QuizStat[] = [
-  {
-    id: 'math-b1',
-    title: '國中一年級 整數運算',
-    totalAttempts: 42,
-    averageScore: 78,
-    passRate: 85,
-    lastAttempt: '2026-06-20',
-  },
-  {
-    id: 'math-b2',
-    title: '國中一年級 分數與小數',
-    totalAttempts: 28,
-    averageScore: 72,
-    passRate: 75,
-    lastAttempt: '2026-06-19',
-  },
-  {
-    id: 'math-b3',
-    title: '國中二年級 一元一次方程式',
-    totalAttempts: 15,
-    averageScore: 65,
-    passRate: 60,
-    lastAttempt: '2026-06-18',
-  },
-  {
-    id: 'math-b4',
-    title: '國中二年級 二元一次聯立方程式',
-    totalAttempts: 8,
-    averageScore: 58,
-    passRate: 50,
-    lastAttempt: '2026-06-15',
-  },
-];
 
 interface DbQuiz {
   id: string;
@@ -78,6 +34,8 @@ export function AdminPage() {
   const [saveStatus, setSaveStatus] = useState<string>('');
   const [dbQuizzes, setDbQuizzes] = useState<DbQuiz[]>([]);
   const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<QuizStats>({ totalAttempts: 0, averageScore: 0, passRate: 0 });
+  const [statsLoading, setStatsLoading] = useState(true);
 
   const loadQuizzes = useCallback(async () => {
     setLoading(true);
@@ -86,17 +44,17 @@ export function AdminPage() {
     setLoading(false);
   }, []);
 
+  const loadStats = useCallback(async () => {
+    setStatsLoading(true);
+    const data = await getQuizStats();
+    setStats(data);
+    setStatsLoading(false);
+  }, []);
+
   useEffect(() => {
     loadQuizzes();
-  }, [loadQuizzes]);
-
-  const totalAttempts = MOCK_STATS.reduce((sum, s) => sum + s.totalAttempts, 0);
-  const overallAvg = Math.round(
-    MOCK_STATS.reduce((sum, s) => sum + s.averageScore, 0) / MOCK_STATS.length
-  );
-  const overallPass = Math.round(
-    MOCK_STATS.reduce((sum, s) => sum + s.passRate, 0) / MOCK_STATS.length
-  );
+    loadStats();
+  }, [loadQuizzes, loadStats]);
 
   const handleManualSave = async (questions: EditorQuestion[]) => {
     setSaveStatus('儲存中...');
@@ -187,21 +145,39 @@ export function AdminPage() {
         <div className="grid gap-4 sm:grid-cols-3">
           <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm" role="group" aria-label="總作答次數">
             <p className="text-sm font-medium text-gray-500">總作答次數</p>
-            <p className="mt-1 text-4xl font-bold tabular-nums text-gray-900" aria-label={`${totalAttempts} 次`}>
-              {totalAttempts}
-            </p>
+            {statsLoading ? (
+              <p className="mt-1 text-2xl text-gray-400">載入中...</p>
+            ) : stats.totalAttempts === 0 ? (
+              <p className="mt-1 text-2xl text-gray-400">尚無作答資料</p>
+            ) : (
+              <p className="mt-1 text-4xl font-bold tabular-nums text-gray-900" aria-label={`${stats.totalAttempts} 次`}>
+                {stats.totalAttempts}
+              </p>
+            )}
           </div>
           <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm" role="group" aria-label="平均分數">
             <p className="text-sm font-medium text-gray-500">平均分數</p>
-            <p className="mt-1 text-4xl font-bold tabular-nums text-gray-900" aria-label={`${overallAvg} 分`}>
-              {overallAvg}
-            </p>
+            {statsLoading ? (
+              <p className="mt-1 text-2xl text-gray-400">載入中...</p>
+            ) : stats.totalAttempts === 0 ? (
+              <p className="mt-1 text-2xl text-gray-400">—</p>
+            ) : (
+              <p className="mt-1 text-4xl font-bold tabular-nums text-gray-900" aria-label={`${stats.averageScore} 分`}>
+                {stats.averageScore}
+              </p>
+            )}
           </div>
           <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm" role="group" aria-label="整體通過率">
             <p className="text-sm font-medium text-gray-500">整體通過率</p>
-            <p className="mt-1 text-4xl font-bold tabular-nums text-gray-900" aria-label={`${overallPass} 百分比`}>
-              {overallPass}%
-            </p>
+            {statsLoading ? (
+              <p className="mt-1 text-2xl text-gray-400">載入中...</p>
+            ) : stats.totalAttempts === 0 ? (
+              <p className="mt-1 text-2xl text-gray-400">—</p>
+            ) : (
+              <p className="mt-1 text-4xl font-bold tabular-nums text-gray-900" aria-label={`${stats.passRate} 百分比`}>
+                {stats.passRate}%
+              </p>
+            )}
           </div>
         </div>
       </section>

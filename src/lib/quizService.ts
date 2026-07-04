@@ -142,6 +142,30 @@ export async function deleteQuiz(quizId: string): Promise<{ error: any }> {
   return { error };
 }
 
+export interface QuizStats {
+  totalAttempts: number;
+  averageScore: number;
+  passRate: number;
+}
+
+export async function getQuizStats(): Promise<QuizStats> {
+  const { data, error } = await supabase
+    .from('quiz_sessions')
+    .select('score');
+
+  if (error || !data || data.length === 0) {
+    return { totalAttempts: 0, averageScore: 0, passRate: 0 };
+  }
+
+  const totalAttempts = data.length;
+  const scores = data.map(s => Number(s.score) || 0);
+  const averageScore = Math.round(scores.reduce((sum, s) => sum + s, 0) / totalAttempts);
+  const passCount = scores.filter(s => s >= 60).length;
+  const passRate = Math.round((passCount / totalAttempts) * 100);
+
+  return { totalAttempts, averageScore, passRate };
+}
+
 // Get all quizzes (for admin)
 export async function getAllQuizzes(): Promise<any[]> {
   const { data, error } = await supabase
